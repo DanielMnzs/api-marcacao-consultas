@@ -1,6 +1,11 @@
 // Caminho: src/main/java/com/fiap/eca/api_marcacao_consultas/security/JwtAuthenticationFilter.java
 package com.fiap.eca.api_marcacao_consultas.security;
 
+// 🔥 MUDANÇA: Imports necessários
+import com.fiap.eca.api_marcacao_consultas.service.UsuarioService;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import java.util.List;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,9 +19,12 @@ import java.util.Collections;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
+    private final UsuarioService usuarioService; // 🔥 MUDANÇA: Adicionamos o service
 
-    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
+    // 🔥 MUDANÇA: Recebemos o UsuarioService no construtor
+    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, UsuarioService usuarioService) {
         this.jwtTokenProvider = jwtTokenProvider;
+        this.usuarioService = usuarioService;
     }
 
     @Override
@@ -24,22 +32,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        // A LÓGICA DE LIBERAR ROTAS FOI REMOVIDA DAQUI.
-        // Agora, o filtro SEMPRE tenta validar o token.
-        // O SecurityConfig que vai decidir se a rota é pública ou não.
-
         String token = extractToken(request);
 
         if (token != null && jwtTokenProvider.validarToken(token)) {
             String email = jwtTokenProvider.obterEmailDoToken(token);
-            // Autentica o usuário no contexto de segurança do Spring para esta requisição
+
+            // 🔥 MUDANÇA: Buscamos o usuário no banco pelo email
+            com.fiap.eca.api_marcacao_consultas.model.Usuario usuario = usuarioService.buscarPorEmail(email);
+
+            // 🔥 MUDANÇA: Criamos a lista de permissões com o "tipo" (Role) do usuário
+            // A Role precisa ser prefixada com "ROLE_" se você usar @PreAuthorize("hasRole('ADMIN')")
+            // Mas para autenticação simples baseada no tipo, só o tipo já basta (ex: "ADMIN")
+            // Vou usar o tipo direto, mas se der pau, a gente bota "ROLE_" + usuario.getTipo()
+            List<SimpleGrantedAuthority> authorities =
+                    Collections.singletonList(new SimpleGrantedAuthority(usuario.getTipo()));
+
+            // 🔥 MUDANÇA: Autenticamos o usuário no contexto com as permissões corretas
             UsernamePasswordAuthenticationToken auth =
-                    new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());
+                    new UsernamePasswordAuthenticationToken(email, null, authorities);
+            
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
 
-        // Continua a cadeia de filtros, independentemente de ter autenticado ou não.
-        // O Spring Security vai usar o contexto que populamos (ou não) para tomar a decisão final.
         filterChain.doFilter(request, response);
     }
 

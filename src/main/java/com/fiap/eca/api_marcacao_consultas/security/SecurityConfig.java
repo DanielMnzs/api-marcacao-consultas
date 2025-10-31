@@ -1,6 +1,8 @@
 // Caminho: src/main/java/com/fiap/eca/api_marcacao_consultas/security/SecurityConfig.java
 package com.fiap.eca.api_marcacao_consultas.security;
 
+// 🔥 MUDANÇA: Importamos o UsuarioService
+import com.fiap.eca.api_marcacao_consultas.service.UsuarioService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -22,9 +24,12 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final UsuarioService usuarioService; // 🔥 MUDANÇA: Adicionamos o service
 
-    public SecurityConfig(JwtTokenProvider jwtTokenProvider) {
+    // 🔥 MUDANÇA: Injetamos o UsuarioService no construtor
+    public SecurityConfig(JwtTokenProvider jwtTokenProvider, UsuarioService usuarioService) {
         this.jwtTokenProvider = jwtTokenProvider;
+        this.usuarioService = usuarioService;
     }
 
     @Bean
@@ -43,10 +48,15 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .headers(headers -> headers.frameOptions(frame -> frame.disable())) // necessário p/ H2 console
-            .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
+
+            // 🔥 MUDANÇA: Passamos o usuarioService para o construtor do filtro
+            .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, usuarioService), UsernamePasswordAuthenticationFilter.class)
+            
             .cors(cors -> cors.configurationSource(request -> {
+                // Você estava usando '192.168.15.16' mas o print mostra 'localhost:8081'
+                // Adicionei 'localhost:8081' na lista de permissões
                 CorsConfiguration config = new CorsConfiguration();
-                config.setAllowedOrigins(List.of("http://localhost:8081", "http://10.0.2.2:8081", "http://192.168.15.16:8080")); // Mantive seu IP
+                config.setAllowedOrigins(List.of("http://localhost:8081", "http://10.0.2.2:8081", "http://192.168.15.16:8080"));
                 config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                 config.setAllowedHeaders(List.of("*"));
                 config.setAllowCredentials(true);

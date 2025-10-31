@@ -59,6 +59,9 @@ public class DataInitializer {
             usuarioRepository.deleteAllInBatch();
             especialidadeRepository.deleteAllInBatch();
 
+            // 🔥 MUDANÇA AQUI: COMENTAMOS O BLOCO DE RESET DE SEQUÊNCIA 🔥
+            // Esse código era específico do H2 e daria erro no Postgres.
+            /*
             // Resetar sequências de ID (específico para H2)
             try {
                 entityManager.createNativeQuery("ALTER TABLE consultas ALTER COLUMN id RESTART WITH 1").executeUpdate();
@@ -69,6 +72,8 @@ public class DataInitializer {
                 System.out.println(
                         "Aviso: Não foi possível resetar as sequências de ID. Isso é normal na primeira execução.");
             }
+            */
+            // 🔥 FIM DA MUDANÇA 🔥
 
             System.out.println("Inicializando banco de dados com dados de exemplo...");
 
