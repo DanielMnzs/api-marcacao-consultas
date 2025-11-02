@@ -72,11 +72,11 @@ public class DataInitializer {
 
             System.out.println("Inicializando banco de dados com dados de exemplo...");
 
-            // Criando especialidades
+            // MUDANÇA 1: Trocando as especialidades pelas profissões
             List<Especialidade> especialidades = new ArrayList<>();
             String[] nomesEspecialidades = {
-                    "Cardiologia", "Dermatologia", "Ortopedia", "Pediatria", "Neurologia",
-                    "Oftalmologia", "Psiquiatria", "Ginecologia", "Urologia", "Endocrinologia"
+                    "Engenheiro de Software", "Arquiteto", "Conferente", "Mesário", "Operador de Máquina",
+                    "Assistente de Operação", "QA", "DevOps", "Assistente Administrativo", "Auxiliar de Produção"
             };
 
             for (String nome : nomesEspecialidades) {
@@ -86,7 +86,7 @@ public class DataInitializer {
             }
 
             especialidadeRepository.saveAll(especialidades);
-            System.out.println("Especialidades criadas: " + especialidades.size());
+            System.out.println("Profissões (Especialidades) criadas: " + especialidades.size());
 
             // Criando usuário admin
             Usuario admin = new Usuario();
@@ -97,21 +97,23 @@ public class DataInitializer {
             usuarioRepository.save(admin);
             System.out.println("Administrador criado");
 
-            // Criando médicos - cada um associado a uma especialidade
+            // MUDANÇA 2: Trocando os nomes e especialidades dos "médicos"
+            // (Vamos manter o 'tipo' como "MEDICO" pro app continuar funcionando)
             List<Usuario> medicos = new ArrayList<>();
             Map<String, Usuario> medicosPorEspecialidade = new HashMap<>();
 
             String[][] dadosMedicos = {
-                    { "Dr. Carlos Silva", "carlos.silva@clinica.com", "senha123", "MEDICO", "Cardiologia" },
-                    { "Dra. Ana Oliveira", "ana.oliveira@clinica.com", "senha123", "MEDICO", "Dermatologia" },
-                    { "Dr. Roberto Santos", "roberto.santos@clinica.com", "senha123", "MEDICO", "Ortopedia" },
-                    { "Dra. Juliana Costa", "juliana.costa@clinica.com", "senha123", "MEDICO", "Pediatria" },
-                    { "Dr. Marcelo Lima", "marcelo.lima@clinica.com", "senha123", "MEDICO", "Neurologia" },
-                    { "Dra. Patricia Mendes", "patricia.mendes@clinica.com", "senha123", "MEDICO", "Oftalmologia" },
-                    { "Dr. Ricardo Ferreira", "ricardo.ferreira@clinica.com", "senha123", "MEDICO", "Psiquiatria" },
-                    { "Dra. Camila Rodrigues", "camila.rodrigues@clinica.com", "senha123", "MEDICO", "Ginecologia" },
-                    { "Dr. Felipe Alves", "felipe.alves@clinica.com", "senha123", "MEDICO", "Urologia" },
-                    { "Dra. Beatriz Santos", "beatriz.santos@clinica.com", "senha123", "MEDICO", "Endocrinologia" }
+                    // Removemos o "Dr."/"Dra." e atualizamos a profissão
+                    { "Carlos Silva", "carlos.silva@clinica.com", "senha123", "MEDICO", "Engenheiro de Software" },
+                    { "Ana Oliveira", "ana.oliveira@clinica.com", "senha123", "MEDICO", "Arquiteto" },
+                    { "Roberto Santos", "roberto.santos@clinica.com", "senha123", "MEDICO", "Conferente" },
+                    { "Juliana Costa", "juliana.costa@clinica.com", "senha123", "MEDICO", "Mesário" },
+                    { "Marcelo Lima", "marcelo.lima@clinica.com", "senha123", "MEDICO", "Operador de Máquina" },
+                    { "Patricia Mendes", "patricia.mendes@clinica.com", "senha123", "MEDICO", "Assistente de Operação" },
+                    { "Ricardo Ferreira", "ricardo.ferreira@clinica.com", "senha123", "MEDICO", "QA" },
+                    { "Camila Rodrigues", "camila.rodrigues@clinica.com", "senha123", "MEDICO", "DevOps" },
+                    { "Felipe Alves", "felipe.alves@clinica.com", "senha123", "MEDICO", "Assistente Administrativo" },
+                    { "Beatriz Santos", "beatriz.santos@clinica.com", "senha123", "MEDICO", "Auxiliar de Produção" }
             };
 
             for (String[] dados : dadosMedicos) {
@@ -119,14 +121,14 @@ public class DataInitializer {
                 medico.setNome(dados[0]);
                 medico.setEmail(dados[1]);
                 medico.setSenha(passwordEncoder.encode(dados[2]));
-                medico.setTipo(dados[3]);
-                medico.setEspecialidade(dados[4]); // Adicionando a especialidade
+                medico.setTipo(dados[3]); // Mantém "MEDICO"
+                medico.setEspecialidade(dados[4]); // Agora é a profissão
                 medicos.add(medico);
                 medicosPorEspecialidade.put(dados[4], medico);
             }
 
             usuarioRepository.saveAll(medicos);
-            System.out.println("Médicos criados: " + medicos.size());
+            System.out.println("Usuários (tipo Médico) criados: " + medicos.size());
 
             // Criando pacientes
             List<Usuario> pacientes = new ArrayList<>();
@@ -155,34 +157,34 @@ public class DataInitializer {
             usuarioRepository.saveAll(pacientes);
             System.out.println("Pacientes criados: " + pacientes.size());
 
-            // Criando algumas consultas de exemplo
+            // MUDANÇA 3: Atualizando as consultas de exemplo para usarem as novas profissões
             List<Consulta> consultas = new ArrayList<>();
 
-            // Dados para consultas: paciente, especialidade, data/hora, observação
+            // Dados para consultas: paciente, profissão, data/hora, observação
             Object[][] dadosConsultas = {
-                    { 0, "Cardiologia", LocalDateTime.now().plusDays(2).withHour(9).withMinute(0),
-                            "Checkup cardíaco anual" },
-                    { 1, "Dermatologia", LocalDateTime.now().plusDays(3).withHour(14).withMinute(30),
-                            "Avaliação de mancha na pele" },
-                    { 2, "Ortopedia", LocalDateTime.now().plusDays(4).withHour(10).withMinute(15),
-                            "Dor no joelho após exercícios" },
-                    { 3, "Pediatria", LocalDateTime.now().plusDays(5).withHour(16).withMinute(0),
-                            "Consulta de rotina" },
-                    { 4, "Neurologia", LocalDateTime.now().plusDays(7).withHour(11).withMinute(45),
-                            "Dores de cabeça frequentes" },
-                    { 5, "Oftalmologia", LocalDateTime.now().plusDays(8).withHour(8).withMinute(30),
-                            "Revisão após cirurgia" },
-                    { 6, "Psiquiatria", LocalDateTime.now().plusDays(9).withHour(15).withMinute(0),
-                            "Primeira consulta" },
-                    { 7, "Ginecologia", LocalDateTime.now().plusDays(10).withHour(13).withMinute(15),
-                            "Exame preventivo anual" },
-                    { 8, "Urologia", LocalDateTime.now().plusDays(12).withHour(17).withMinute(30),
-                            "Consulta de rotina" },
-                    { 9, "Endocrinologia", LocalDateTime.now().plusDays(14).withHour(10).withMinute(0),
-                            "Acompanhamento de diabetes" }
+                    { 0, "Engenheiro de Software", LocalDateTime.now().plusDays(2).withHour(9).withMinute(0),
+                            "Revisão de código" },
+                    { 1, "Arquiteto", LocalDateTime.now().plusDays(3).withHour(14).withMinute(30),
+                            "Discussão de novo projeto" },
+                    { 2, "Conferente", LocalDateTime.now().plusDays(4).withHour(10).withMinute(15),
+                            "Verificação de estoque" },
+                    { 3, "Mesário", LocalDateTime.now().plusDays(5).withHour(16).withMinute(0),
+                            "Treinamento de urna" },
+                    { 4, "Operador de Máquina", LocalDateTime.now().plusDays(7).withHour(11).withMinute(45),
+                            "Manutenção preventiva" },
+                    { 5, "Assistente de Operação", LocalDateTime.now().plusDays(8).withHour(8).withMinute(30),
+                            "Revisão de planilhas" },
+                    { 6, "QA", LocalDateTime.now().plusDays(9).withHour(15).withMinute(0),
+                            "Planejamento de testes" },
+                    { 7, "DevOps", LocalDateTime.now().plusDays(10).withHour(13).withMinute(15),
+                            "Configuração de pipeline" },
+                    { 8, "Assistente Administrativo", LocalDateTime.now().plusDays(12).withHour(17).withMinute(30),
+                            "Organização de arquivos" },
+                    { 9, "Auxiliar de Produção", LocalDateTime.now().plusDays(14).withHour(10).withMinute(0),
+                            "Acompanhamento de linha" }
             };
 
-            // Criando consultas com pacientes, médicos e especialidades correspondentes
+            // Criando consultas com pacientes, "médicos" e profissões correspondentes
             for (Object[] dados : dadosConsultas) {
                 int pacienteIndex = (int) dados[0];
                 String especialidadeNome = (String) dados[1];
