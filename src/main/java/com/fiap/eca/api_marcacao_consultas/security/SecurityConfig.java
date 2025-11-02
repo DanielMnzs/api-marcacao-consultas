@@ -15,8 +15,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
 
+// Imports que a gente adicionou para o CORS funcionar
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.Arrays;
+
+// Esse import estava duplicado, deixei só o List
 import java.util.List;
 
 @Configuration
@@ -47,21 +53,18 @@ public class SecurityConfig {
                 // 🔐 Qualquer outra requisição PRECISA de um token válido
                 .anyRequest().authenticated()
             )
+            // 🔥 CORREÇÃO (PARTE 1): Deixamos SÓ ESSE .cors()
+            // Esse é o que chama o @Bean que a gente criou
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            
             .headers(headers -> headers.frameOptions(frame -> frame.disable())) // necessário p/ H2 console
 
             // 🔥 MUDANÇA: Passamos o usuarioService para o construtor do filtro
-            .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, usuarioService), UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, usuarioService), UsernamePasswordAuthenticationFilter.class);
             
-            .cors(cors -> cors.configurationSource(request -> {
-                // Você estava usando '192.168.15.16' mas o print mostra 'localhost:8081'
-                // Adicionei 'localhost:8081' na lista de permissões
-                CorsConfiguration config = new CorsConfiguration();
-                config.setAllowedOrigins(List.of("http://localhost:8081", "http://10.0.2.2:8081", "http://192.168.15.16:8080"));
-                config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                config.setAllowedHeaders(List.of("*"));
-                config.setAllowCredentials(true);
-                return config;
-            }));
+            // 🔥 CORREÇÃO (PARTE 2): O BLOCO DUPLICADO .cors() FOI REMOVIDO DAQUI.
+            // Aquele bloco que estava aqui antes estava sobrescrevendo
+            // a configuração certa e causando o erro.
 
         return http.build();
     }
@@ -69,6 +72,34 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    // Em SecurityConfig.java
+    // Esse é o @Bean que o .cors() ali de cima usa.
+    // Ele está correto.
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        
+        // 👇 AQUI ESTÁ O PULO DO GATO
+        // Você libera a origem do seu frontend (vi na imagem que é localhost:8081)
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:8081")); 
+        
+        // Libera os métodos que seu frontend vai usar
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
+        
+        // Libera os cabeçalhos que seu frontend pode mandar
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
+        
+        // Permite que o frontend envie credenciais (como cookies ou tokens)
+        configuration.setAllowCredentials(true);
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        
+        // Aplica essa configuração para TODAS as rotas ("/**")
+        source.registerCorsConfiguration("/**", configuration); 
+        
+        return source;
     }
 
     @Bean

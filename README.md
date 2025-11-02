@@ -1,130 +1,127 @@
-# api-marcacao-consultas
+🚀 App de Agendamento de Processos (FESTO)
+Este é um projeto full-stack que simula uma plataforma de agendamento de processos, inspirado no contexto industrial (FESTO). A aplicação permite que usuários ("Usuários") agendem horários com especialistas ("Profissionais") para iniciar ou acompanhar processos de software, e também monitorem dados de sensores em tempo real.
 
-Murilo Pomin rm:99683
-Gabriel Taboada rm:97957
-Daniel Menezes rm:551398
-Luiz Augusto Melki rm:552053
-Pedro Martins rm:98663
+O projeto é dividido em:
 
-API para Marcação de Consultas
-Este projeto é uma API RESTful desenvolvida em Java com Spring Boot, projetada para gerenciar o agendamento de consultas em uma clínica. Ela permite o cadastro e autenticação de usuários (pacientes, médicos e administradores), gerenciamento de especialidades, e a marcação e visualização de consultas.
+Backend: Uma API RESTful construída com Spring Boot (Java).
 
-Tecnologias Utilizadas
-Java 17+
+Frontend: Um aplicativo móvel (e web) construído com React Native (Expo).
 
-Spring Boot: Framework principal para a construção da aplicação.
+✨ Funcionalidades Principais
+Autenticação JWT: Sistema completo de Login e Cadastro com tokens JWT.
 
-Spring Security: Utilizado para a autenticação e autorização, com implementação de JSON Web Tokens (JWT).
+Perfis de Usuário: Três níveis de acesso (Administrador, Profissional e Usuário).
 
-Spring Data JPA (Hibernate): Para a persistência de dados e comunicação com o banco.
+Agendamento de Processos: Usuários podem agendar horários com profissionais (antigos "Médicos") com base na "Profissão" (antiga "Especialidade").
 
-H2 Database: Banco de dados em memória e persistente em arquivo, ideal para desenvolvimento e testes.
+Dashboards por Perfil:
 
-Lombok: Para reduzir a verbosidade do código em models e DTOs.
+Admin: Visualiza estatísticas, gerencia usuários (altera senhas) e agendamentos.
 
-Maven: Gerenciador de dependências e build do projeto.
+Profissional: Vê seus agendamentos pendentes e pode confirmá-los ou cancelá-los.
 
-Como Executar o Projeto
-Pré-requisitos:
+Usuário: Vê seus agendamentos e pode criar novos.
 
-Java JDK 17 ou superior instalado.
+Dashboard de Sensores: Uma tela que consome o endpoint /readings do backend para exibir as últimas leituras de múltiplos sensores, atendendo ao requisito da Sprint.
 
-Maven instalado.
+💻 Tecnologias Utilizadas
+Backend (API)
+Java 17
 
-Clone o repositório:
+Spring Boot: Para a estrutura da API RESTful.
+
+Spring Security: Para segurança e autenticação com JWT.
+
+Spring Data JPA (Hibernate): Para persistência de dados.
+
+PostgreSQL: Banco de dados relacional.
+
+Maven: Para gerenciamento de dependências.
+
+Frontend (App)
+React Native (Expo)
+
+TypeScript
+
+React Navigation: Para gerenciamento de rotas e navegação.
+
+Context API: Para gerenciamento de estado global (ex: Autenticação).
+
+Styled Components: Para estilização.
+
+Axios (via apiClient): Para as requisições HTTP.
+
+⚙️ Pré-requisitos
+Para rodar este projeto, você precisará ter instalado em sua máquina:
+
+Java JDK 17+
+
+Maven 3.x+
+
+Node.js (LTS)
+
+npm ou yarn
+
+npx expo-cli
+
+Uma instância do PostgreSQL rodando (localmente ou em um container).
+
+🚀 Como Executar o Projeto
+
+1. Backend (Spring Boot)
+   Configure o Banco de Dados:
+
+Certifique-se de que seu PostgreSQL está rodando.
+
+Crie um banco de dados (ex: postgres).
+
+Abra o arquivo src/main/resources/application.properties.
+
+Configure as propriedades spring.datasource.url, spring.datasource.username e spring.datasource.password com suas credenciais do Postgres. (O padrão atual é postgres/123456).
+
+Delete o Flag de Inicialização (Importante):
+
+Para garantir que o backend popule o banco com os dados atualizados (ex: as novas "Profissões"), delete o arquivo ./data/db_initialized.flag na raiz do projeto backend.
+
+Rode a Aplicação:
+
+Abra a classe ApiMarcacaoConsultasApplication.java.
+
+Inicie a aplicação (pelo "Play" do VS Code ou mvn spring-boot:run).
+
+O backend estará rodando em http://localhost:8080.
+
+2. Frontend (React Native / Expo)
+   Instale as Dependências:
 
 Bash
 
-git clone <url-do-seu-repositorio>
-cd <pasta-do-projeto>
-Execute a aplicação:
+cd pasta-do-frontend
+npm install
+Configure a URL da API:
 
-Você pode rodar diretamente pela sua IDE (IntelliJ, Eclipse, etc.), localizando a classe principal ApiMarcacaoConsultasApplication e executando-a.
+Abra o arquivo src/services/api.ts.
 
-Ou pode executar via Maven no terminal:
+Certifique-se de que API_BASE_URL esteja apontando para o seu backend.
+
+Para testes no navegador web ou emulador Android, use: export const API_BASE_URL = "http://localhost:8080";
+
+Para testes no celular físico (Expo Go), use o IP da sua máquina na rede (ex: http://192.168.X.X:8080).
+
+Inicie o App:
 
 Bash
 
-.\mvnw spring-boot:run
-Acesso à Aplicação:
+npx expo start
+Escaneie o QR Code com o app Expo Go no seu celular, ou aperte w para rodar na web.
 
-A API estará disponível em http://localhost:8080.
+🔑 Credenciais de Teste
+Você pode usar as seguintes credenciais para testar os diferentes perfis (senha padrão: admin123 ou senha123, dependendo do DataInitializer):
 
-O console do banco de dados H2 pode ser acessado em http://localhost:8080/h2-console. Utilize as seguintes credenciais para conectar:
+Administrador: admin@clinica.com
 
-Driver Class: org.h2.Driver
+Profissional (Ex): carlos.silva@clinica.com
 
-JDBC URL: jdbc:h2:file:./data/consultas_db
+Usuário (Ex): joao.pereira@email.com
 
-User Name: sa
-
-Password: (deixe em branco)
-
-Inicialização dos Dados:
-
-Na primeira vez que a aplicação é executada, o banco de dados é populado com dados de teste, incluindo um usuário administrador, médicos, pacientes e especialidades, para facilitar a utilização imediata da API.
-
-Usuário Admin:
-
-Email: admin@clinica.com
-
-Senha: admin123
-
-Estrutura dos Endpoints da API
-A seguir estão os principais endpoints disponíveis na API. Rotas que não estão marcadas como "Público" exigem um token de autenticação Bearer no cabeçalho Authorization.
-
-Autenticação
-POST /usuarios/login (Público)
-
-Autentica um usuário e retorna um token JWT. O corpo da requisição deve conter email e senha.
-
-POST /usuarios (Público)
-
-Cadastra um novo usuário no sistema.
-
-Usuários
-GET /usuarios
-
-Lista todos os usuários cadastrados.
-
-GET /usuarios/{id}
-
-Busca um usuário específico pelo seu ID.
-
-GET /usuarios/medicos
-
-Lista todos os usuários do tipo "MEDICO". Pode ser filtrado pela especialidade com um parâmetro de query (ex: /usuarios/medicos?especialidade=Cardiologia).
-
-GET /usuarios/me
-
-Retorna os dados do usuário que está autenticado (através do token).
-
-PUT /usuarios/{id}
-
-Atualiza os dados de um usuário.
-
-DELETE /usuarios/{id}
-
-Exclui um usuário do sistema.
-
-Consultas
-GET /consultas
-
-Lista todas as consultas agendadas.
-
-POST /consultas
-
-Cria uma nova consulta.
-
-GET /consultas/{id}
-
-Busca uma consulta pelo seu ID.
-
-DELETE /consultas/{id}
-
-Exclui (cancela) uma consulta.
-
-Especialidades
-GET /especialidades
-
-Lista todas as especialidades médicas cadastradas.
+As senhas e usuários são criados no arquivo DataInitializer.java do backend.
